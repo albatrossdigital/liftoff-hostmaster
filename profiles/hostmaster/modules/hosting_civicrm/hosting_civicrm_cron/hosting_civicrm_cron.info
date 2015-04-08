@@ -1,0 +1,6 @@
+name = Hosting CiviCRM Cron
+description = Allow the hosting system to run cron on CiviCRM sites.
+package = Aegir CiviCRM
+dependencies[] = hosting
+dependencies[] = hosting_civicrm
+core = 6.x

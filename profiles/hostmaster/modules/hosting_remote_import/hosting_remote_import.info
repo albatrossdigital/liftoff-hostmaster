@@ -1,0 +1,4 @@
+name = "Hosting remote import"
+description = "Helps to import sites from remote Hostmasters"
+core = 6.x
+package = Hosting

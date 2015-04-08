@@ -1,0 +1,202 @@
+<?php
+/**
+ * @file
+ *   Allow sites to have cdn domains that cdn content can be accessed with.
+ */
+
+/**
+ * Implementation of hook_form_alter().
+ *
+ * Add a textbox to site node forms with a newline
+ * separated list of cdn domains to the site
+ */
+function hosting_cdn_form_alter(&$form, $form_state, $form_id) {
+  if ($form_id == 'site_node_form') {
+    return hosting_cdn_form_data($form);
+  }
+}
+
+/**
+ * Alter the node form for a site to add the cdn domains.
+ *
+ * @param $form
+ *   The form to alter, should come from hook_form_alter().
+ */
+function hosting_cdn_form_data(&$form) {
+  if (user_access('create cdn domains')) {
+    $form['cdn'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Local CDN domains'),
+      '#description' => t('The site\'s assets can also be accessed through these domain names, one per line.'),
+      '#default_value' => implode("\n", (array) $form['#node']->cdn),
+      '#weight' => 19,
+    );
+    return $form;
+  }
+}
+
+/**
+ * Retrieve a list of cdn domains for a site.
+ *
+ * @param $node
+ *   The site to get the cdn domains for.
+ * @return
+ *   An array of cdn domains for the given site.
+ */
+function hosting_cdn_get_cdn($node) {
+  if (!$node->vid) {
+    return array();
+  }
+  $cdn = array();
+  $query = "SELECT cdn FROM {hosting_cdn} WHERE vid=%d";
+  $args[] = $node->vid;
+  $query .= ' ORDER BY cdn ASC';
+
+  $result = db_query($query, $args);
+
+  while ($obj = db_fetch_object($result)) {
+    $cdn[] = $obj->cdn;
+  }
+  if (sizeof($cdn)) {
+    return $cdn;
+  }
+  return array();
+}
+
+/**
+ * Save stored cdn domains for a new site.
+ *
+ * @param $node
+ *   The node of the site containing the cdn domains to save.
+ */
+function hosting_cdn_insert($node) {
+  if ($node->cdn) {
+    $cdn_domains = (is_array($node->cdn)) ? $node->cdn : explode("\n", str_replace(",", "\n", $node->cdn));
+    if (is_array($cdn_domains)) {
+      foreach ($cdn_domains as $cdn_domain) {
+        if (($cdn_domain = trim($cdn_domain)) && _hosting_valid_fqdn($cdn_domain)) {
+          db_query("INSERT INTO {hosting_cdn} (vid, nid, cdn) VALUES (%d, %d, '%s')", $node->vid, $node->nid, $cdn_domain);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Update stored cdn domains for an existing site.
+ *
+ * @param $node
+ *   The node of the site containing the cdn domains to save.
+ */
+function hosting_cdn_update($node) {
+  // We need to wipe clean existing cdn domains if we are not making a new revision
+  if (empty($node->revision)) {
+    hosting_cdn_delete_revision($node);
+  }
+
+  hosting_cdn_insert($node);
+}
+
+/**
+ * Remove the stored cdn domains for and existing site.
+ *
+ * @param $node
+ *   The site node.
+ */
+function hosting_cdn_delete($node) {
+  db_query("DELETE FROM {hosting_cdn} WHERE nid=%d", $node->nid);
+}
+
+/**
+ * Remove the stored cdn domains for and existing site for a specific version.
+ *
+ * @param $node
+ *   The site node.
+ */
+function hosting_cdn_delete_revision($node) {
+  db_query("DELETE FROM {hosting_cdn} WHERE nid=%d and vid=%d", $node->nid, $node->vid);
+}
+
+/**
+ * Implementation of hook_nodeapi().
+ *
+ * For most of the $op's we pass of to a help function that does the heavy
+ * lifting.
+ */
+function hosting_cdn_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  if ($node->type == 'site') {
+    switch ($op) {
+      case 'insert':
+        hosting_cdn_insert($node);
+        break;
+      case 'update':
+        hosting_cdn_update($node);
+        break;
+      case 'delete' :
+        hosting_cdn_delete($node);
+        break;
+      case 'delete revision':
+        hosting_cdn_delete_revision($node);
+        break;
+      case 'validate' :
+        $cdn_domains = explode("\n", $node->cdn);
+        foreach ($cdn_domains as $cdn_domain) {
+          if ($cdn_domain = trim($cdn_domain)) {
+            if (!hosting_domain_allowed($cdn_domain, array('nid' => $node->nid)) || $cdn_domain == $node->title) {
+              form_set_error('cdn', t('The domain name @cdn_domain is already in use', array('@cdn_domain' => $cdn_domain)));
+            }
+          }
+        }
+        break;
+      case 'load':
+        $additions['cdn'] = hosting_cdn_get_cdn($node);
+        return $additions;
+        break;
+      case 'view':
+        $cdn_domains = hosting_cdn_get_cdn($node);
+
+        if (sizeof($cdn_domains)) {
+          foreach ($cdn_domains as $link) {
+            $links[] = l($link, "http://$link");
+          }
+          $node->content['info']['cdn'] = array(
+            '#type' => 'item',
+            '#title' => t('CDN domains'),
+            '#value' => implode(', ', $links),
+            '#weight' => 19,
+          );
+        }
+        break;
+    }
+  }
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function hosting_cdn_perm() {
+  return array('create cdn domains', 'administer hosting cdn');
+}
+
+/**
+ * Implementation of hook_allow_domain().
+ *
+ * This function will check the existing cdn domains to ensure that
+ * this url has not been used before
+ */
+function hosting_cdn_allow_domain($url, $params = array()) {
+  $query = "SELECT COUNT(n.nid) FROM {node} n
+      LEFT JOIN {hosting_site} h ON h.nid=n.nid
+      LEFT JOIN {hosting_cdn} a  ON n.vid = a.vid
+    WHERE
+      type='site' AND cdn='%s' AND h.status <> %d";
+  $args[] = $url;
+  $args[] = HOSTING_SITE_DELETED;
+
+  if (isset($params['nid'])) {
+    $query .= ' AND n.nid <> %d';
+    $args[] = $params['nid'];
+  }
+  $result = !db_result(db_query($query, $args));
+  return $result;
+}

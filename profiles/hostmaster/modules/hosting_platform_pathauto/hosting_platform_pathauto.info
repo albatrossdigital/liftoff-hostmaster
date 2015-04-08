@@ -1,0 +1,11 @@
+name = Platform pathauto
+description = Automatically generates platform path
+core = 6.x
+package = Hosting
+
+; Information added by Drupal.org packaging script on 2014-01-08
+version = "6.x-2.1"
+core = "6.x"
+project = "hosting_platform_pathauto"
+datestamp = "1389214637"
+

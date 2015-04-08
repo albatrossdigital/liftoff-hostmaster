@@ -1,0 +1,64 @@
+<?php
+
+/**
+ * Implemention of hook_install().
+ */
+function hosting_site_backup_manager_install() {
+  // Check before adding the table, former users of the hosting_backup_gc module could have this table already
+  if (!db_table_exists('hosting_backup_gc_sites')) {
+    drupal_install_schema('hosting_site_backup_manager');
+  }
+}
+
+/**
+ * Implemention of hook_uninstall().
+ */
+function hosting_site_backup_manager_uninstall() {
+  drupal_uninstall_schema('hosting_site_backup_manager');
+}
+
+/**
+ * Implemention of hook_schema().
+ */
+function hosting_site_backup_manager_schema() {
+  $schema = array();
+
+  $schema['hosting_backup_gc_sites'] = array(
+    'description' => t('A cache of the last gc times of all enabled sites.'),
+    'fields' => array(
+      'site_id' => array(
+        'description' => t('The sites nid from the {node} table.'),
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'last_gc' => array(
+        'description' => t('The timestamp of the last gc of this site.'),
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('site_id'),
+    'indexes' => array(
+      'last_gc' => array('last_gc'),
+    ),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implementation of hook_update_N().
+ *
+ * Adds a table to record the gc times for sites.
+ */
+function hosting_site_backup_manager_update_6101() {
+  $ret = array();
+
+  $schema = hosting_site_backup_manager_schema();
+
+  if (!db_table_exists('hosting_backup_gc_sites')) {
+    db_create_table($ret, 'hosting_backup_gc_sites', $schema['hosting_backup_gc_sites']);
+  }
+
+  return $ret;
+}

@@ -1,0 +1,92 @@
+<?php
+
+/**
+ * Implementation of hook_hosting_tasks
+ */
+function hosting_tasks_extra_hosting_tasks() {
+  $tasks = array();
+
+  $tasks['site']['flush_cache'] = array(
+    'title' => t('Flush all caches'),
+    'description' => t('Flushes all caches on this site. This may cause a short load peak on any busy site, so please run it only if you have a good reason to flush caches on demand instead of allowing the site cron to flush them, when scheduled.'),
+    'dialog' => TRUE,
+  );
+  $tasks['site']['rebuild_registry'] = array(
+    'title' => t('Rebuild registry'),
+    'description' => t('Rebuilds the registry and flushes all caches on this site. On Drupal 7 it will recreate registry tables from scratch. This may cause a short load peak on any busy site, so please run it only if you have a good reason to rebuild registry.'),
+    'dialog' => TRUE,
+  );
+
+  // Removed to close potential attack vector.
+  //   $tasks['site']['run_cron'] = array(
+  //     'title' => t('Run drush cron'),
+  //     'description' => t('Runs cron locally with drush on this site. It allows you to manually run the cron with longer timeout and higher memory allowed than in standard, web based, scheduled cron Aegir runs for you via cURL request to protected /cron.php URL.'),
+  //     'dialog' => TRUE,
+  //   );
+
+  $tasks['site']['update'] = array(
+    'title' => t('Run db updates'),
+    'description' => t('Runs database updates on this site -- but first it will create a hot-backup to be able to revert your site database to the pre-update state in case there will be any problem detected. NOTE: This task is NOT a replacement for proper upgrade workflow and should be used only occasionally.'),
+    'dialog' => TRUE,
+  );
+  $tasks['server']['flush_drush_cache'] = array(
+    'title' => t('Flush Drush cache'),
+    'description' => t('Flushes the Drush cache on this (web) server.'),
+  );
+
+  // It is BOA specific currently.
+  $tasks['site']['site_health_check'] = array(
+    'title' => t('Run health check'),
+    'description' => t('Runs health check on this site. Site status along with any problems found will be reported and displayed only in this task log. Make sure to click on the (Expand) links in the task log to review all reported details.'),
+    'dialog' => TRUE,
+  );
+
+  return $tasks;
+}
+
+
+/**
+ * Implementation of hook_perm()
+ */
+function hosting_tasks_extra_perm() {
+  return array(
+    'create rebuild_registry task',
+    'create flush_cache task',
+    'create run_cron task',
+    'create update task',
+    'create flush_drush_cache task',
+    'create site_health_check task',
+  );
+}
+
+/**
+ * Implements hosting_task_TASK_TYPE_form().
+ */
+function hosting_task_update_form($node) {
+  // Gather a list of operations to execute.
+  $all_ops = module_invoke_all('hosting_task_update_ops');
+  uasort($all_ops, 'element_sort');
+  $value = '<div>The following operations will be executed on <em>' . $node->title . '</em>:<br /><ul>';
+  foreach ($all_ops as $item) {
+    $value .= '<li>' . $item['#description'] . '</li>';
+  }
+  $value .= '</ul></div>';
+  $form['operations'] = array(
+    '#value' => $value,
+  );
+  return $form;
+}
+
+/**
+ * Implements hook_hosting_task_update_ops().
+ *
+ * @see: hosting_task_update_form().
+ */
+function hosting_tasks_extra_hosting_task_update_ops() {
+  return array(
+    'site update' => array(
+      '#description' => 'Run site updates (update.php).',
+      '#weight' => 0,
+    )
+  );
+}

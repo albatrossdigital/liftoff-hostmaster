@@ -1,0 +1,68 @@
+<?php
+/**
+ * @file
+ *   Allow sites to be cloned.
+ */
+
+/**
+ * Implementation of hook_hosting_tasks().
+ */
+function hosting_clone_hosting_tasks() {
+  $options = array();
+
+  $options['site']['clone'] = array(
+    'title' => t('Clone'),
+    'description' => t('You may want to read our <a href="http://community.aegirproject.org/node/1381" target=_blank><strong>best recipes for disaster</strong></a> before going further. You can make a copy of your site using this form, but <strong>avoid changing its platform here at the same time</strong>. If you wish to securely change the platform this site (or its cloned copy) is hosted on, <i>Clone</i> it in its <strong>current</strong> platform first and then use <i>Migrate</i> to move it to the new platform. Hint: if you wish to change only the main domain of your site, use <i>Migrate</i>, not <i>Clone</i>.'),
+    'weight' => 5,
+    'dialog' => TRUE
+  );
+  return $options;
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function hosting_clone_perm() {
+  return array(
+    'create clone task',
+  );
+}
+
+/**
+ * Implementation of hook_hosting_task_TASK_TYPE_form_validate().
+ */
+function hosting_task_clone_form_validate($form, &$form_state) {
+  $site = $form['parameters']['#node'];
+
+  $url = strtolower(trim($form_state['values']['parameters']['new_uri'])); // domain names are case-insensitive
+  if ($url == strtolower(trim($site->title))) {
+    form_set_error('new_uri', t("To clone a site you need to specify a new Domain name to clone it to."));
+  }
+  else {
+    hosting_task_migrate_form_validate($form, $form_state);
+  }
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function hosting_clone_theme($existing, $type, $theme, $path) {
+  return array('hosting_task_clone_form' => array('arguments' => array('form' => NULL)));
+}
+
+/**
+ * Implementation of hook_hosting_task_TASK_TYPE_form().
+ */
+function hosting_task_clone_form($node) {
+  $form = hosting_task_migrate_form($node);
+  $form['new_uri']['#description'] = t('The new domain name of the clone site.');
+  return $form;
+}
+
+/**
+ * Render the clone task form.
+ */
+function theme_hosting_task_clone_form(&$form) {
+  return theme_hosting_task_migrate_form($form);
+}
+

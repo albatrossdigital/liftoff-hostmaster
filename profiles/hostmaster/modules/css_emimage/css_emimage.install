@@ -1,0 +1,54 @@
+<?php
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the css_emimage module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function css_emimage_install() {
+  drupal_install_schema('css_emimage');
+
+  // Set the module's weight high so that it runs after other modules.
+  db_query("UPDATE {system} SET weight = 9999 WHERE name = 'css_emimage' AND type = 'module'");
+  cache_clear_all();
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function css_emimage_uninstall() {
+  variable_del('css_emimage_ielimit');
+  variable_del('css_emimage_force_inline');
+  variable_del('css_emimage_duplicate_embed_limit');
+  variable_del('css_emimage_inline_datauri_limit');
+
+  cache_clear_all('*', 'cache_css_emimage_advagg', TRUE);
+  drupal_uninstall_schema('css_emimage');
+}
+
+/**
+ * Implementation of hook_schema.
+ */
+function css_emimage_schema() {
+  $schema['cache_css_emimage_advagg'] = drupal_get_schema_unprocessed('system', 'cache');
+  $schema['cache_css_emimage_advagg']['description'] = t('Cache table for CSS Embedded Image Advagg integration. Used to keep track of what kind of file the md5 is');
+
+  return $schema;
+}
+
+/**
+ * Update 6200 - Add in the cache_css_emimage_advagg table.
+ */
+function css_emimage_update_6200() {
+  $ret = array();
+
+  // Create cache table.
+  $schema['cache_css_emimage_advagg'] = drupal_get_schema_unprocessed('system', 'cache');
+  $schema['cache_css_emimage_advagg']['description'] = t('Cache table for CSS Embedded Image Advagg integration. Used to keep track of what kind of file the md5 is');
+  db_create_table($ret, 'cache_css_emimage_advagg', $schema['cache_css_emimage_advagg']);
+
+  return $ret;
+}

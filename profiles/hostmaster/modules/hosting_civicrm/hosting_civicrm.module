@@ -1,0 +1,135 @@
+<?php
+/**
+ * @file
+ *   Hosting CiviCRM API functions, and Drupal hooks.
+ */
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function hosting_civicrm_form_site_node_form_alter(&$form, &$form_state) {
+  // Display the CiviCRM version
+  if ($form['#node']->nid) {
+    if ($form['#node']->civicrm_version) {
+      $form['info']['civicrm_version'] = array(
+        '#type' => 'item',
+        '#title' => t('CiviCRM version'),
+        '#value' => $form['#node']->civicrm_version,
+        '#required' => FALSE,
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_nodeapi().
+ */
+function hosting_civicrm_nodeapi(&$node, $op) {
+  if ($node->type == 'site') {
+    switch ($op) {
+      case 'load':
+        $query = 'SELECT max(version) as civicrm_version
+                    FROM hosting_package_instance hpi
+                    LEFT JOIN hosting_package pkg ON (pkg.nid = hpi.package_id)
+                   WHERE platform = %d
+                     and short_name = "%s"
+                     and status = 1';
+
+        if ($result = db_result(db_query($query, $node->platform, 'civicrm'))) {
+          $node->civicrm_version = $result;
+        }
+        break;
+
+      case 'view':
+        if (isset($node->civicrm_version)) {
+          $node->content['info']['civicrm_version'] = array(
+            '#type' => 'item',
+            '#title' => t('CiviCRM version'),
+            '#value' => $node->civicrm_version,
+          );
+        }
+        break;
+    }
+  }
+}
+
+/**
+ * Return the number of sites where CiviCRM is available
+ */
+function hosting_civicrm_site_count() {
+  $platforms = hosting_civicrm_get_platforms();
+
+  $count = 0;
+  foreach ($platforms as $key => $nid) {
+    $count += hosting_site_count($nid);
+  }
+
+  return $count;
+}
+
+/**
+ * Return an array of active platforms that contain CiviCRM.
+ */
+function hosting_civicrm_get_platforms() {
+  // Find the package ID for CiviCRM, which is unique accros all platforms.
+  $package_id = db_result(db_query('SELECT nid FROM {hosting_package} WHERE short_name = "%s"', 'civicrm'));
+
+  // Find active platforms that have the package_id.
+  $result = db_query('SELECT DISTINCT nid FROM {hosting_platform} pl
+                       INNER JOIN {hosting_package_instance} pkg ON (pl.nid = pkg.platform)
+                       WHERE pkg.package_id = %d
+                         AND pl.status = %d',
+                      $package_id,
+                      HOSTING_PLATFORM_ENABLED);
+
+  $platforms = array();
+  while ($nid = db_result($result)) {
+    $platforms[] = $nid;
+  }
+  return $platforms;
+}
+
+/**
+ * Return an array of enabled sites capable of running CiviCRM
+ *
+ * @param $order_by
+ *   Field to order the returned sites by.
+ */
+function hosting_civicrm_get_sites($order_by = null) {
+  $platforms = hosting_civicrm_get_platforms();
+  $sites = array();
+
+  foreach ($platforms as $platform) {
+    //get all the enabled sites on the platform
+    if (isset($order_by)) {
+      $result = db_query('SELECT n.nid FROM {node} n LEFT JOIN {hosting_site} s ON n.nid=s.nid WHERE n.type="site" and s.status = %d and s.platform = %d ORDER BY "%s" ASC', HOSTING_SITE_ENABLED, $platform, $order_by);
+    }
+    else {
+      $result = db_query('SELECT n.nid FROM {node} n LEFT JOIN {hosting_site} s ON n.nid=s.nid WHERE n.type="site" and s.status = %d and s.platform=%d', HOSTING_SITE_ENABLED, $platform);
+    }
+    while ($nid = db_fetch_object($result)->nid) {
+      $sites[] = $nid;
+    }
+  }
+
+  return $sites;
+}
+
+/**
+ * Helper function to determine whether a platform contains CiviCRM
+ */
+function _is_civicrm_platform($nid) {
+  return in_array($nid, hosting_civicrm_get_platforms());
+}
+
+/**
+ * Helper function to determine the version of CiviCRM available.
+ * DEPRECATED c.f. #2335909
+ * Remove after 2015-05-01.
+ */
+function hosting_civicrm_get_version() {
+  //TODO: confirm this is returning the proper version for our platform, etc.
+  // @see: hosting_civicrm_form_site_node_form_alter()
+  $package = hosting_package_instance_load(array('short_name' => 'civicrm'));
+  return $package->version;
+}

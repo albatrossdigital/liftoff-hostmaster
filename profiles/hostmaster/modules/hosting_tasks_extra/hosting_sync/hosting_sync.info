@@ -1,0 +1,6 @@
+name = Hosting Sync
+description = Allows database and files to be synchronized between Aegir sites (frontend).
+core = 6.x
+package = Hosting
+
+dependencies[] = hosting

@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * @file
+ *  Add (and remove) a field in the hosting_site table for CiviCRM version.
+ */
+
+/**
+ * Implements hook_schema_alter().
+ */
+function hosting_civicrm_schema_alter(&$schema) {
+}
+
+/**
+ * Implements hook_install().
+ */
+function hosting_civicrm_install() {
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function hosting_civicrm_uninstall() {
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * Remove the civicrm_version field from hosting_sites.
+ */
+function hosting_civicrm_update_6001() {
+  $ret = array();
+  $ret[] = db_drop_field($ret, 'hosting_site', 'civicrm_version');
+  return $ret;
+}

@@ -1,0 +1,53 @@
+<?php
+/**
+ * @file
+ *   Install, update and uninstall for the site cdn module.
+ */
+
+/**
+ * Implementation of hook_schema().
+ */
+function hosting_cdn_schema() {
+  $schema['hosting_cdn'] = array(
+    'fields' => array(
+      'vid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'cdn' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+    ),
+    'indexes' => array(
+      'vid' => array('vid'),
+      'cdn' => array('cdn'),
+    ),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function hosting_cdn_install() {
+  // Create tables.
+  drupal_install_schema('hosting_cdn');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function hosting_cdn_uninstall() {
+  // Remove tables.
+  drupal_uninstall_schema('hosting_cdn');
+}

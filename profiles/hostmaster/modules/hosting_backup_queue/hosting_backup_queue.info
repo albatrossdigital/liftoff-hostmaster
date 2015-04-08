@@ -1,0 +1,5 @@
+name = Backup queue
+description = Allows hourly/daily/weekly scheduled backups of Aegir sites.
+core = 6.x
+package = Hosting
+dependencies[] = hosting_site

@@ -1,0 +1,67 @@
+<?php
+/**
+ * @file
+ * The Hosting Platform Pathauto module.
+ */
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function hosting_platform_pathauto_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'platform_node_form' && $form['publish_path']['#type'] == 'textfield') {
+    // We add an after build, that will add our javascript.
+    $form['#after_build'][] = 'hosting_platform_pathauth_platform_node_form_after_build';
+    $form['title']['#attributes'] = array('class' => 'platform-name');
+    $form['publish_path']['#attributes'] = array('class' => 'platform-path');
+  }
+}
+
+/**
+ * Form after build function.
+ *
+ * We use this to add the javascript to a form, because our form alter will not
+ * be called if the form is validated, fails and is re-rendered.
+ */
+function hosting_platform_pathauth_platform_node_form_after_build($form) {
+  static $added = FALSE;
+  if (!$added) {
+    $added = TRUE;
+    drupal_add_js(drupal_get_path('module', 'hosting_platform_pathauto') .'/hosting_platform_pathauto.js');
+    $settings = array(
+      'hosting_platform_pathauto' => array(
+        'base_path' => variable_get('hosting_platform_pathauto_base_path', '/var/aegir/platforms/'),
+      ),
+    );
+    drupal_add_js($settings, 'setting');
+  }
+
+  return $form;
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function hosting_platform_pathauto_menu() {
+  $items['admin/hosting/platform_pathauto'] = array(
+    'title' => 'Platform pathauto',
+    'description' => 'Configure automatic generation of platform paths',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hosting_platform_pathauto_settings'),
+    'access arguments' => array('edit platform'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  return $items;
+}
+
+/**
+ * Configuration form for platform pathauto
+ */
+function hosting_platform_pathauto_settings() {
+  $form['hosting_platform_pathauto_base_path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Platforms path'),
+    '#description' => t('The base path for your platforms, i.e. /var/aegir/platforms/'),
+    '#default_value' => variable_get('hosting_platform_pathauto_base_path', '/var/aegir/platforms/'),
+  );
+  return system_settings_form($form);
+}

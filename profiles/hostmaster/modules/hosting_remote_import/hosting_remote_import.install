@@ -1,0 +1,44 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function hosting_remote_import_install() {
+  drupal_install_schema('hosting_remote_import');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function hosting_remote_import_uninstall() {
+  drupal_uninstall_schema('hosting_remote_import');
+}
+
+/**
+ * Implements hook_schema().
+ */
+function hosting_remote_import_schema() {
+  $schema = array();
+  
+  $schema['remote_import_sites'] = array(
+    'fields' => array(
+      'tid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'site' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+    ),
+    'indexes' => array(
+      'tid' => array('tid'),
+    ),
+  );
+  
+  return $schema;
+}

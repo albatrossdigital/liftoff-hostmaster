@@ -1,0 +1,121 @@
+<?php
+
+define('LIFTOFF_DOMAIN', '.liftoff.albatrossdigital.com');
+define('LIFTOFF_KEY', 'Z4lSpQl1YS7Mk4xX');
+define('LIFTOFF_SIGNATURE', 'XQslWIHKxuorhtmlvtFAZaqFeeVAQZcB');
+
+
+/**
+ * Maps profile machine names to aegir nid.
+ * This could be done in liftoff_api.module (on aegir).
+ */
+function _liftoff_api_profiles($profile) {
+  $profiles = array(
+    'liftoff' => 558,
+    'helm' => 235,
+  );
+  return $profiles[$profile];
+}
+
+
+/**
+ * Implementation of hook_menu()
+ */
+function liftoff_api_menu() {
+  $items = array();
+
+  $items['liftoff/api'] = array(
+    'title' => 'List',
+    //'page arguments' => array(2),
+    'access callback' => 'liftoff_api_access',
+    'page callback' => 'liftoff_api_callback',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+
+/**
+ * Access callback.
+ */
+function liftoff_api_access() {
+  return $_GET['key'] == LIFTOFF_KEY && $_GET['signature'] == LIFTOFF_SIGNATURE;
+}
+
+
+/**
+ * API callback.
+ */
+function liftoff_api_callback() {
+  $data = $_GET;
+  $action = $data['action'];
+
+  switch ($action) {
+    case 'create':
+    case 'clone':
+      return liftoff_api_create($data);
+      break;    
+    case 'status':
+      return node_load($data['nid']);
+      break;
+  }
+}
+
+
+
+function liftoff_api_create($data) {
+  $url = !empty($data['machine_name']) ? $data['machine_name'] . LIFTOFF_DOMAIN : NULL;
+  $node = new stdClass();
+  $node->created = time();
+  $node->changed = $node->created;
+  $node->status = 1;
+  $node->name = 'liftoffadmin'; // superuser
+  
+  switch ($data['action']) {
+    case 'create':     
+      $node->type = 'site';
+      $node->client = 1; // Main aegir user. @todo: create new user with bakery?
+      $node->db_server = 4;
+      $node->name = '';  
+      $node->platform = 416; // liftoff
+      $node->profile = !empty($data['profile']) ? _liftoff_api_profiles($data['profile']) : 558; // liftoff=558, helm=235, standard=
+      $node->title = $url;
+      $node->hosting_name = $url;
+      $node->site_status = 0;
+      $node->verified = 0;
+      $node->last_cron = 0;
+      $node->cron_key = 0;
+      $node->site_language = 'en';
+      $node->cron_interval = 86400;
+      break;
+
+
+    case 'clone':
+      $source_node = node_load($data['nid']);
+      if ($source_node->type == 'site') {
+        $node->type = 'task';
+        $node->task_type = 'clone';
+        $node->task_status = 0;
+        $node->title = 'Clone ' . $source_node->title;
+        $node->rid = $source_node->nid;
+        $node->task_args = array(
+          'new_uri' => $url,
+          'new_db_server' => $source_node->db_server,
+          'target_platform' => $source_node->platform,
+        );
+      }
+
+      break;
+  }
+
+  if (!empty($node->type) && $node = node_submit($node)) {
+    node_save($node);
+    $return = array('node' => $node->nid);
+  } else {
+    $node = FALSE;
+  }
+
+  print drupal_json($node);
+ 
+}

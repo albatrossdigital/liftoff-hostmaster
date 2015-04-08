@@ -1,0 +1,5 @@
+name = Hosting tasks extra
+description = Adds additional tasks to Aegir.
+package = Hosting
+dependencies[] = hosting_site
+core = 6.x
