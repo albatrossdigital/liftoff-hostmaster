@@ -42,6 +42,7 @@ function hosting_site_drush_context_import($context, &$node) {
     }
     $node->client = $client->nid;
   }
+  watchdog('albatross', '$context hosting_site_drush_context_import !a', array('!a' => print_r($context, 1)));
 
 }
 
@@ -50,6 +51,7 @@ function hosting_site_drush_context_import($context, &$node) {
  */
 function drush_hosting_site_pre_hosting_task($task) {
   $task =& drush_get_context('HOSTING_TASK');
+  watchdog('albatross', '$task drush_hosting_site_pre_hosting_task !a', array('!a' => print_r($task, 1)));
 
   if ($task->task_type == 'restore') {
     $backup = hosting_site_get_backup($task->task_args['bid']);
@@ -72,6 +74,8 @@ function drush_hosting_site_pre_hosting_task($task) {
  * implementation of the hosting_post_install hook
  */
 function hosting_site_post_hosting_install_task($task, $data) {
+  watchdog('albatross', '$task hosting_site_post_hosting_install_task !a', array('!a' => print_r($task, 1)));
+  watchdog('albatross', '$data hosting_site_post_hosting_install_task !a', array('!a' => print_r($data, 1)));
   if ($task->ref->type == 'site') {
     $context = $data['context'];
     $packages = $context['packages'];
