@@ -71,6 +71,7 @@ function liftoff_api_create($data) {
   $node->changed = $node->created;
   $node->status = 1;
   $node->name = 'liftoffadmin'; // superuser
+  $node->site_data = array('clients' => array(1=>0));
   
   switch ($data['action']) {
     case 'create':     
@@ -88,6 +89,7 @@ function liftoff_api_create($data) {
       $node->cron_key = 0;
       $node->site_language = 'en';
       $node->cron_interval = 86400;
+      
       break;
 
 
@@ -111,11 +113,16 @@ function liftoff_api_create($data) {
 
   if (!empty($node->type) && $node = node_submit($node)) {
     node_save($node);
+    hosting_site_data_update($node);
     $return = array('node' => $node->nid);
   } else {
     $node = FALSE;
   }
 
+
   print drupal_json($node);
  
 }
+
+
+// @todo: hook_node_api to set $node->data
