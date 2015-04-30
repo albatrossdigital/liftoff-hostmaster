@@ -163,15 +163,15 @@ function liftoff_api_post_hosting_install_task($task, $data) {
     watchdog('albatross', '$data liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($task->ref, 1)));
     $node = new stdClass();
     # copy some of the settings of the cloned site ($task->ref) to $task
-    foreach (array('type', 'status', 'uid', 'comment', 'promote', 'moderate', 'sticky', 'name', 'format', 'client', 'db_server', 'profile', 'site_status', 'site_language') as $field) {
+    foreach (array('type', 'status', 'uid', 'rid', 'comment', 'promote', 'moderate', 'sticky', 'name', 'format', 'client', 'db_server', 'profile', 'site_status', 'site_language') as $field) {
       $node->$field = $task->$field;
     }
-    $node->title = 'Add user: ' . $task->ref->title;
+    $node->title = 'Add user: ' . $task->title;
     $node->task_type = 'add_user';
     $node->task_args = array(
-      'jeff',
-      'jeff@albatrossdigital.com',
-      'administrator',
+      'user' => 'jeff',
+      'mail' => 'jeff@albatrossdigital.com',
+      'role' => 'administrator',
     );
       watchdog('albatross', '$new_task1 liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($node, 1)));
 
