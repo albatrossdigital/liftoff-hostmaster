@@ -18,6 +18,12 @@ function liftoff_api_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
+      'sitename' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => '',
+      ),
       'user' => array(
         'type' => 'varchar',
         'length' => 64,

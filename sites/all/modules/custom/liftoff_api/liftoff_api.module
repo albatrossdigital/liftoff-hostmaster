@@ -148,6 +148,7 @@ function liftoff_api_insert($node) {
       !empty($node->liftoff->lat) ? $node->liftoff->lat : NULL,
       !empty($node->liftoff->lng) ? $node->liftoff->lng : NULL
     );
+      watchdog('albatross', 'INSERT RESULT liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($data, 1)));
 
   }
 }
@@ -169,7 +170,9 @@ function liftoff_api_post_hosting_install_task($task, $data) {
     $result = db_query("SELECT * FROM {liftoff_api_site_data} WHERE nid=%d",
       $task->ref->nid
     );
-      watchdog('albatross', 'RESULT liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($result, 1)));
+    $data = db_fetch_array($result);
+
+      watchdog('albatross', 'RESULT DATA liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($data, 1)));
 
     $node->title = 'Add user: ' . $task->title;
     $node->task_type = 'add_user';
