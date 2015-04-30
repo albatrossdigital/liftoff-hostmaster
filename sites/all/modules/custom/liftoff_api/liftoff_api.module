@@ -136,7 +136,7 @@ function liftoff_api_create($data) {
  * Implementation of hook_insert().
  */
 function liftoff_api_insert($node) {
-  if ($node->type == 'site' && !empty($node->liftoff))
+  if ($node->type == 'site' && !empty($node->liftoff)) {
     $result = db_query("INSERT INTO {my_table}
       (vid, nid, user, mail, role, lat, lng)
       VALUES ('%d', '%d', %s', '%s', '%s', '%s')",
