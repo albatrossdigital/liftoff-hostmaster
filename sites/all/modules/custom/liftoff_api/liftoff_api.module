@@ -165,17 +165,19 @@ function liftoff_api_insert($node) {
 function liftoff_api_post_hosting_install_task($task, $data) {
   if ($task->ref->type == 'site') {
     $node = new stdClass();
-    # copy some of the settings of the cloned site ($task->ref) to $task
     foreach (array('type', 'status', 'uid', 'rid', 'comment', 'promote', 'moderate', 'sticky', 'name', 'format', 'client', 'db_server', 'profile', 'site_status', 'site_language') as $field) {
       $node->$field = $task->$field;
     }
-    $node_base = $node;
     $result = db_query("SELECT * FROM {liftoff_api_site_data} WHERE nid=%d",
       $task->ref->nid
     );
     $data = db_fetch_array($result);
 
     // Add user task
+    $node = new stdClass();
+    foreach (array('type', 'status', 'uid', 'rid', 'comment', 'promote', 'moderate', 'sticky', 'name', 'format', 'client', 'db_server', 'profile', 'site_status', 'site_language') as $field) {
+      $node->$field = $task->$field;
+    }
     $node->title = 'Add user: ' . $task->title;
     $node->task_type = 'add_user';
     $node->task_args = array(
@@ -186,7 +188,10 @@ function liftoff_api_post_hosting_install_task($task, $data) {
     node_save($node);
 
     // liftoff_variables action
-    $node = $node_base;
+    $node = new stdClass();
+    foreach (array('type', 'status', 'uid', 'rid', 'comment', 'promote', 'moderate', 'sticky', 'name', 'format', 'client', 'db_server', 'profile', 'site_status', 'site_language') as $field) {
+      $node->$field = $task->$field;
+    }
     $node->title = 'Liftoff variables: ' . $task->title;
     $node->task_type = 'liftoff_variables';
     $node->task_args = array(
