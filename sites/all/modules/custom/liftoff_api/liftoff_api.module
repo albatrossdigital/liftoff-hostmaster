@@ -137,9 +137,9 @@ function liftoff_api_create($data) {
  */
 function liftoff_api_insert($node) {
   if ($node->type == 'site' && !empty($node->liftoff)) {
-    $result = db_query("INSERT INTO {my_table}
+    $result = db_query("INSERT INTO {liftoff_api_site_data}
       (vid, nid, user, mail, role, lat, lng)
-      VALUES ('%d', '%d', %s', '%s', '%s', '%s')",
+      VALUES (%d, %d, %s', '%s', '%s', '%s')",
       $node->vid,
       $node->nid, 
       $node->liftoff->name,
@@ -166,6 +166,11 @@ function liftoff_api_post_hosting_install_task($task, $data) {
     foreach (array('type', 'status', 'uid', 'rid', 'comment', 'promote', 'moderate', 'sticky', 'name', 'format', 'client', 'db_server', 'profile', 'site_status', 'site_language') as $field) {
       $node->$field = $task->$field;
     }
+    $result = db_query("SELECT * FROM {liftoff_api_site_data} WHERE nid=%d",
+      $task->ref->nid
+    );
+      watchdog('albatross', 'RESULT liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($result, 1)));
+
     $node->title = 'Add user: ' . $task->title;
     $node->task_type = 'add_user';
     $node->task_args = array(
