@@ -89,7 +89,13 @@ function liftoff_api_create($data) {
       $node->cron_key = 0;
       $node->site_language = 'en';
       $node->cron_interval = 86400;
-      
+      $node->liftoff = (object) array(
+        'user' => $data['user'],
+        'mail' => $data['mail'],
+        'role' => !empty($data['role']) ? $data['role'] : 'administrator',
+        'lat' => !empty($data['lat']) ? $data['lat'] : NULL,
+        'lng' => !empty($data['lng']) ? $data['lng'] : NULL,
+      ); 
       break;
 
 
@@ -122,6 +128,28 @@ function liftoff_api_create($data) {
 
   print drupal_json($node);
  
+}
+
+
+
+/**
+ * Implementation of hook_insert().
+ */
+function liftoff_api_insert($node) {
+  if ($node->type == 'site' && !empty($node->liftoff))
+    $result = db_query("INSERT INTO {my_table}
+      (vid, nid, user, mail, role, lat, lng)
+      VALUES ('%d', '%d', %s', '%s', '%s', '%s')",
+      $node->vid,
+      $node->nid, 
+      $node->liftoff->name,
+      $node->liftoff->mail,
+      !empty($node->liftoff->role) ? $node->liftoff->role : 'administrator',
+      !empty($node->liftoff->lat) ? $node->liftoff->lat : NULL,
+      !empty($node->liftoff->lng) ? $node->liftoff->lng : NULL
+    );
+
+  }
 }
 
 /*
