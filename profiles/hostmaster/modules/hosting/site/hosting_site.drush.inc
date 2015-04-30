@@ -66,11 +66,6 @@ function drush_hosting_site_pre_hosting_task($task) {
     }
     $task->args[1] = implode(',', $backups);
   }
-  if ($task->ref->type == 'site' && $task->task_type == 'add_user') {
-    $task->args[0] = $task->task_args['user'];
-    $task->args[1] = $task->task_args['mail'];
-    $task->args[2] = $task->task_args['role'];
-  }
 
 }
 
