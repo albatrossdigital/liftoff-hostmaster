@@ -130,22 +130,26 @@ function liftoff_api_create($data) {
  */
 
 function liftoff_api_post_hosting_install_task($task, $data) {
-  watchdog('albatross', '$task liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($task, 1)));
-  watchdog('albatross', '$data liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($task->ref, 1)));
-  $node = new stdClass();
-  # copy some of the settings of the cloned site ($task->ref) to $task
-  foreach (array('type', 'status', 'uid', 'comment', 'promote', 'moderate', 'sticky', 'name', 'format', 'client', 'db_server', 'profile', 'site_status', 'site_language') as $field) {
-    $node->$field = $task->ref->$field;
-  }
-  $node->title = 'Add users: ' . $task->ref->title;
-  $node->args = array(
-    'jeff',
-    'jeff@albatrossdigital.com',
-    'administrator',
-  );
-    watchdog('albatross', '$new_task1 liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($node, 1)));
+  if ($task->ref->type == 'site') {
+    watchdog('albatross', '$task liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($task, 1)));
+    watchdog('albatross', '$data liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($task->ref, 1)));
+    $node = new stdClass();
+    # copy some of the settings of the cloned site ($task->ref) to $task
+    foreach (array('type', 'status', 'uid', 'comment', 'promote', 'moderate', 'sticky', 'name', 'format', 'client', 'db_server', 'profile', 'site_status', 'site_language') as $field) {
+      $node->$field = $task->ref->$field;
+    }
+    $node->title = 'Add users: ' . $task->ref->title;
+    $node->task_type = 'add_users';
+    $node->args = array(
+      'jeff',
+      'jeff@albatrossdigital.com',
+      'administrator',
+    );
+      watchdog('albatross', '$new_task1 liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($node, 1)));
 
-  node_save($node);
-  watchdog('albatross', '$new_task liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($node, 1)));
+    node_save($node);
+    watchdog('albatross', '$new_task liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($node, 1))); 
+  }
+
 
 }
