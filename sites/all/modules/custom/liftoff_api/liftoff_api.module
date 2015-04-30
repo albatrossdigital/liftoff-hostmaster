@@ -138,9 +138,9 @@ function liftoff_api_post_hosting_install_task($task, $data) {
     foreach (array('type', 'status', 'uid', 'comment', 'promote', 'moderate', 'sticky', 'name', 'format', 'client', 'db_server', 'profile', 'site_status', 'site_language') as $field) {
       $node->$field = $task->$field;
     }
-    $node->title = 'Add users: ' . $task->ref->title;
-    $node->task_type = 'add_users';
-    $node->args = array(
+    $node->title = 'Add user: ' . $task->ref->title;
+    $node->task_type = 'add_user';
+    $node->task_args = array(
       'jeff',
       'jeff@albatrossdigital.com',
       'administrator',
