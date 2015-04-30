@@ -51,4 +51,5 @@ function liftoff_api_schema() {
     ),
     'primary key' => array('vid'),
   );
+  return $schema;
 }
