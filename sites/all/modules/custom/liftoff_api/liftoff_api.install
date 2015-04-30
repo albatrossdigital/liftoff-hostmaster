@@ -53,3 +53,9 @@ function liftoff_api_schema() {
   );
   return $schema;
 }
+
+
+function liftoff_api_install() {
+  // Create tables.
+  drupal_install_schema('liftoff_api_site_data');
+}
