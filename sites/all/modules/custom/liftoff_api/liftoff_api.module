@@ -112,6 +112,8 @@ function liftoff_api_create($data) {
           'new_db_server' => $source_node->db_server,
           'target_platform' => $source_node->platform,
         );
+        // @todo
+        //$node->liftoff =
       }
 
       break;
@@ -162,8 +164,6 @@ function liftoff_api_insert($node) {
 
 function liftoff_api_post_hosting_install_task($task, $data) {
   if ($task->ref->type == 'site') {
-    watchdog('albatross', '$task liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($task, 1)));
-    watchdog('albatross', '$data liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($task->ref, 1)));
     $node = new stdClass();
     # copy some of the settings of the cloned site ($task->ref) to $task
     foreach (array('type', 'status', 'uid', 'rid', 'comment', 'promote', 'moderate', 'sticky', 'name', 'format', 'client', 'db_server', 'profile', 'site_status', 'site_language') as $field) {
@@ -195,8 +195,6 @@ function liftoff_api_post_hosting_install_task($task, $data) {
       'administrator',
     );
     node_save($node);
-
-    watchdog('albatross', '$new_task liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($node, 1))); 
   }
 
 
