@@ -131,7 +131,7 @@ function liftoff_api_create($data) {
 
 function liftoff_api_post_hosting_install_task($task, $data) {
   watchdog('albatross', '$task liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($task, 1)));
-  watchdog('albatross', '$data liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($data, 1)));
+  watchdog('albatross', '$data liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($task->ref, 1)));
   $task = new stdClass();
   # copy some of the settings of the cloned site ($task->ref) to $task
   foreach (array('type', 'status', 'uid', 'comment', 'promote', 'moderate', 'sticky', 'name', 'format', 'client', 'db_server', 'profile', 'site_status', 'site_language') as $field) {
