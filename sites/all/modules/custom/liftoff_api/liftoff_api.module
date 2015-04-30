@@ -128,7 +128,8 @@ function liftoff_api_create($data) {
  * For some reason hook_post_hosting_install_task() wasn't working,
  * so this is called in hosting_site.drush.inc.
  */
-function liftoff_api_post_hosting_install_task_callback($task, $data) {
+
+function liftoff_api_post_hosting_install_task($task, $data) {
   watchdog('albatross', '$task liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($task, 1)));
   watchdog('albatross', '$data liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($data, 1)));
   $task = new stdClass();
@@ -142,16 +143,9 @@ function liftoff_api_post_hosting_install_task_callback($task, $data) {
     'jeff@albatrossdigital.com',
     'administrator',
   );
+    watchdog('albatross', '$new_task1 liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($task, 1)));
+
   node_save($task);
   watchdog('albatross', '$new_task liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($task, 1)));
 
-}
-
-
-
-// @todo: hook_node_api to set $node->data
-
-function liftoff_api_post_hosting_install_task($task, $data) {
-    watchdog('albatross', 'CALLBACK liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($task, 1)));
-liftoff_api_post_hosting_install_task_callback($task, $data);
 }
