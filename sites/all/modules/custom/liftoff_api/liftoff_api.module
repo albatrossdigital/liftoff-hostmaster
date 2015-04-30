@@ -136,6 +136,8 @@ function liftoff_api_create($data) {
  * Implementation of hook_insert().
  */
 function liftoff_api_insert($node) {
+        watchdog('albatross', 'NODE RESULT liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($node, 1)));
+
   if ($node->type == 'site' && !empty($node->liftoff)) {
     $result = db_query("INSERT INTO {liftoff_api_site_data}
       (vid, nid, user, mail, role, lat, lng)
@@ -148,7 +150,7 @@ function liftoff_api_insert($node) {
       !empty($node->liftoff->lat) ? $node->liftoff->lat : NULL,
       !empty($node->liftoff->lng) ? $node->liftoff->lng : NULL
     );
-      watchdog('albatross', 'INSERT RESULT liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($data, 1)));
+      watchdog('albatross', 'INSERT RESULT liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($result, 1)));
 
   }
 }
@@ -167,23 +169,33 @@ function liftoff_api_post_hosting_install_task($task, $data) {
     foreach (array('type', 'status', 'uid', 'rid', 'comment', 'promote', 'moderate', 'sticky', 'name', 'format', 'client', 'db_server', 'profile', 'site_status', 'site_language') as $field) {
       $node->$field = $task->$field;
     }
+    $node_base = $node;
     $result = db_query("SELECT * FROM {liftoff_api_site_data} WHERE nid=%d",
       $task->ref->nid
     );
     $data = db_fetch_array($result);
 
-      watchdog('albatross', 'RESULT DATA liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($data, 1)));
-
+    // Add user task
     $node->title = 'Add user: ' . $task->title;
     $node->task_type = 'add_user';
     $node->task_args = array(
-      'user' => 'jeff',
-      'mail' => 'jeff@albatrossdigital.com',
-      'role' => 'administrator',
+      'jeff',
+      'jeff@albatrossdigital.com',
+      'administrator',
     );
-      watchdog('albatross', '$new_task1 liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($node, 1)));
-
     node_save($node);
+
+    // liftoff_variables action
+    $node = $node_base;
+    $node->title = 'Liftoff variables: ' . $task->title;
+    $node->task_type = 'liftoff_variables';
+    $node->task_args = array(
+      'jeff',
+      'jeff@albatrossdigital.com',
+      'administrator',
+    );
+    node_save($node);
+
     watchdog('albatross', '$new_task liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($node, 1))); 
   }
 
