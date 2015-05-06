@@ -210,3 +210,9 @@ function liftoff_api_post_hosting_install_task($task, $data) {
 
 
 }
+
+
+function hosting_clone_post_hosting_clone_task($task, $data) {
+  return liftoff_api_post_hosting_install_task($task, $data);
+}
+
