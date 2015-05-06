@@ -163,6 +163,8 @@ function liftoff_api_insert($node) {
  */
 
 function liftoff_api_post_hosting_install_task($task, $data) {
+      watchdog('albatross', 'TASK liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($task, 1)));
+
   if ($task->ref->type == 'site') {
     $node = new stdClass();
     foreach (array('type', 'status', 'uid', 'rid', 'comment', 'promote', 'moderate', 'sticky', 'name', 'format', 'client', 'db_server', 'profile', 'site_status', 'site_language') as $field) {
