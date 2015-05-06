@@ -172,6 +172,8 @@ function liftoff_api_post_hosting_install_task($task, $data) {
       $task->ref->nid
     );
     $data = db_fetch_array($result);
+    watchdog('albatross', 'DB DATA liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($data, 1)));
+
 
     // Add user task
     $node = new stdClass();
@@ -186,6 +188,8 @@ function liftoff_api_post_hosting_install_task($task, $data) {
       'administrator',
     );
     node_save($node);
+    watchdog('albatross', 'Add user task liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($node, 1)));
+   
 
     // liftoff_variables action
     $node = new stdClass();
