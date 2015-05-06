@@ -1,6 +1,6 @@
 <?php
 
-define('LIFTOFF_DOMAIN', '.liftoff.albatrossdigital.com');
+define('LIFTOFF_DOMAIN', '.liftoff.space');
 define('LIFTOFF_KEY', 'Z4lSpQl1YS7Mk4xX');
 define('LIFTOFF_SIGNATURE', 'XQslWIHKxuorhtmlvtFAZaqFeeVAQZcB');
 
@@ -79,7 +79,7 @@ function liftoff_api_create($data) {
       $node->client = 1; // Main aegir user. @todo: create new user with bakery?
       $node->db_server = 4;
       $node->name = '';  
-      $node->platform = 416; // liftoff
+      $node->platform = $data['profile'] == 'helm' ? 946 : 416; // liftoff
       $node->profile = !empty($data['profile']) ? _liftoff_api_profiles($data['profile']) : 558; // liftoff=558, helm=235, standard=
       $node->title = $url;
       $node->hosting_name = $url;
