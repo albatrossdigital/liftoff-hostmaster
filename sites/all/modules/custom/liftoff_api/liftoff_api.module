@@ -89,13 +89,13 @@ function liftoff_api_create($data) {
       $node->cron_key = 0;
       $node->site_language = 'en';
       $node->cron_interval = 86400;
-      $node->liftoff = (object) array(
+      /*$node->liftoff = (object) array(
         'user' => $data['user'],
         'mail' => $data['mail'],
         'role' => !empty($data['role']) ? $data['role'] : 'administrator',
         'lat' => !empty($data['lat']) ? $data['lat'] : NULL,
         'lng' => !empty($data['lng']) ? $data['lng'] : NULL,
-      ); 
+      );*/ 
       break;
 
 
@@ -127,35 +127,38 @@ function liftoff_api_create($data) {
     $node = FALSE;
   }
 
+  $result = db_query("INSERT INTO {liftoff_api_site_data}
+    (vid, nid, machine_name, sitename, user, mail, role, lat, lng)
+    VALUES (%d, %d, %s', '%s', '%s', '%s', '%s', '%s')",
+    $node->type == 'site' ? $node->vid : NULL,
+    $node->type == 'site' ? $node->nid : NULL,
+    $url,
+    !empty($data['sitename']) ? $data['sitename'] : $url,
+    $data['user'],
+    $data['mail'],
+    !empty($data['role']) ? $data['role'] : 'administrator',
+    !empty($data['lat']) ? $data['lat'] : NULL,
+    !empty($data['lng']) ? $data['lng'] : NULL,
+  );
+
 
   print drupal_json($node);
  
 }
 
-
-
 /**
- * Implementation of hook_insert().
+ * Implementation of hook_nodeapi().
  */
-function liftoff_api_insert($node) {
+/*function liftoff_api_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
         watchdog('albatross', 'NODE RESULT liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($node, 1)));
 
-  if ($node->type == 'site' && !empty($node->liftoff)) {
-    $result = db_query("INSERT INTO {liftoff_api_site_data}
-      (vid, nid, user, mail, role, lat, lng)
-      VALUES (%d, %d, %s', '%s', '%s', '%s')",
-      $node->vid,
-      $node->nid, 
-      $node->liftoff->name,
-      $node->liftoff->mail,
-      !empty($node->liftoff->role) ? $node->liftoff->role : 'administrator',
-      !empty($node->liftoff->lat) ? $node->liftoff->lat : NULL,
-      !empty($node->liftoff->lng) ? $node->liftoff->lng : NULL
-    );
-      watchdog('albatross', 'INSERT RESULT liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($result, 1)));
+  if ($op == 'insert' && ($node->type == 'site' ||) && !empty($node->liftoff)) {
+    
+    watchdog('albatross', 'INSERT RESULT liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($result, 1)));
 
   }
-}
+}*/
+
 
 /*
  * For some reason hook_post_hosting_install_task() wasn't working,
@@ -170,8 +173,8 @@ function liftoff_api_post_hosting_install_task($task, $data) {
     foreach (array('type', 'status', 'uid', 'rid', 'comment', 'promote', 'moderate', 'sticky', 'name', 'format', 'client', 'db_server', 'profile', 'site_status', 'site_language') as $field) {
       $node->$field = $task->$field;
     }
-    $result = db_query("SELECT * FROM {liftoff_api_site_data} WHERE nid=%d",
-      $task->ref->nid
+    $result = db_query("SELECT * FROM {liftoff_api_site_data} WHERE url=%d",
+      $task->ref->hosting_name
     );
     $data = db_fetch_array($result);
     watchdog('albatross', 'DB DATA liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($data, 1)));

@@ -9,14 +9,20 @@ function liftoff_api_schema() {
       'vid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE,
+        'not null' => FALSE,
         'default' => 0,
       ),
       'nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE,
+        'not null' => FALSE,
         'default' => 0,
+      ),
+      'machine_name' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
       ),
       'sitename' => array(
         'type' => 'varchar',
@@ -55,7 +61,7 @@ function liftoff_api_schema() {
         'default' => '',
       ),
     ),
-    'primary key' => array('vid'),
+    'primary key' => array('machine_name'),
   );
   return $schema;
 }
