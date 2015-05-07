@@ -1,5 +1,6 @@
 <?php
 
+
 define('LIFTOFF_DOMAIN', '.liftoff.space');
 define('LIFTOFF_KEY', 'Z4lSpQl1YS7Mk4xX');
 define('LIFTOFF_SIGNATURE', 'XQslWIHKxuorhtmlvtFAZaqFeeVAQZcB');
@@ -121,29 +122,27 @@ function liftoff_api_create($data) {
 
   if (!empty($node->type) && $node = node_submit($node)) {
     node_save($node);
-    hosting_site_data_update($node);
+    //hosting_site_data_update($node);
     $return = array('node' => $node->nid);
   } else {
     $node = FALSE;
   }
 
-  $result = db_query("INSERT INTO {liftoff_api_site_data}
-    (vid, nid, machine_name, sitename, user, mail, role, lat, lng)
-    VALUES (%d, %d, %s', '%s', '%s', '%s', '%s', '%s')",
-    $node->type == 'site' ? $node->vid : NULL,
-    $node->type == 'site' ? $node->nid : NULL,
-    $url,
-    !empty($data['sitename']) ? $data['sitename'] : $url,
-    $data['user'],
-    $data['mail'],
-    !empty($data['role']) ? $data['role'] : 'administrator',
-    !empty($data['lat']) ? $data['lat'] : NULL,
-    !empty($data['lng']) ? $data['lng'] : NULL
-  );
+  $query = "insert into {liftoff_api_site_data} (vid, nid, machine_name, sitename, user, mail, role, lat, lng) values (
+    '".($node->type == 'site' ? $node->vid : '')."',
+    '".($node->type == 'site' ? $node->nid : '')."',
+    '$url',
+    '".(!empty($data['sitename']) ? $data['sitename'] : $url)."',
+    '".$data['user']."',
+    '".$data['mail']."',
+    '".(!empty($data['role']) ? $data['role'] : 'administrator')."',
+    '".(!empty($data['lat']) ? $data['lat'] : '')."',
+    '".(!empty($data['lng']) ? $data['lng'] : '')."');";
 
+  $result = db_query($query);
 
   print drupal_json($node);
- 
+
 }
 
 /**
@@ -173,11 +172,9 @@ function liftoff_api_post_hosting_install_task($task, $data) {
     foreach (array('type', 'status', 'uid', 'rid', 'comment', 'promote', 'moderate', 'sticky', 'name', 'format', 'client', 'db_server', 'profile', 'site_status', 'site_language') as $field) {
       $node->$field = $task->$field;
     }
-    $result = db_query("SELECT * FROM {liftoff_api_site_data} WHERE url=%d",
-      $task->ref->hosting_name
-    );
+    $result = db_query("SELECT * FROM {liftoff_api_site_data} WHERE machine_name='".$task->ref->title."';");
     $data = db_fetch_array($result);
-    watchdog('albatross', 'DB DATA liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($data, 1)));
+    watchdog('albatross', 'DB DATA liftoff_api_post_hosting_install_task '.$task->ref->title.' <pre>!a</pre>', array('!a' => print_r($data, 1)));
 
 
     // Add user task
@@ -188,9 +185,9 @@ function liftoff_api_post_hosting_install_task($task, $data) {
     $node->title = 'Add user: ' . $task->title;
     $node->task_type = 'add_user';
     $node->task_args = array(
-      'jeff',
-      'jeff@albatrossdigital.com',
-      'administrator',
+      $data['user'],
+      $data['mail'],
+      $data['role'],
     );
     node_save($node);
     watchdog('albatross', 'Add user task liftoff_api_post_hosting_install_task <pre>!a</pre>', array('!a' => print_r($node, 1)));
@@ -204,9 +201,9 @@ function liftoff_api_post_hosting_install_task($task, $data) {
     $node->title = 'Liftoff variables: ' . $task->title;
     $node->task_type = 'liftoff_variables';
     $node->task_args = array(
-      'jeff',
-      'jeff@albatrossdigital.com',
-      'administrator',
+      $data['sitename'],
+      $data['lat'],
+      $data['lng'],
     );
     node_save($node);
   }
