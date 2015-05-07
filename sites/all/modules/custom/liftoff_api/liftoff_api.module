@@ -138,7 +138,7 @@ function liftoff_api_create($data) {
     $data['mail'],
     !empty($data['role']) ? $data['role'] : 'administrator',
     !empty($data['lat']) ? $data['lat'] : NULL,
-    !empty($data['lng']) ? $data['lng'] : NULL,
+    !empty($data['lng']) ? $data['lng'] : NULL
   );
 
 
