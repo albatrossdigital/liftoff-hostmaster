@@ -202,8 +202,8 @@ function liftoff_api_post_hosting_install_task($task, $data) {
     $node->task_type = 'liftoff_variables';
     $node->task_args = array(
       $data['sitename'],
-      $data['lat'],
-      $data['lng'],
+      str_replace('-', '\-', $data['lat']),
+      str_replace('-', '\-', $data['lng']),
     );
     node_save($node);
   }
